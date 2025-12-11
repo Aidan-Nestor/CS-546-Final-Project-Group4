@@ -1,0 +1,13 @@
+<section>
+  <h1>Login</h1>
+  <form id="loginForm" class="card" method="post" action="/auth/login" novalidate>
+    <label>Username or Email
+      <input type="text" name="identifier" id="identifier" required>
+    </label>
+    <label>Password
+      <input type="password" name="password" id="password" required minlength="8">
+    </label>
+    <button type="submit" class="btn">Sign In</button>
+    <p class="form-msg" id="loginMsg" aria-live="polite"></p>
+  </form>
+</section>

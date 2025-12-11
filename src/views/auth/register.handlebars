@@ -1,0 +1,16 @@
+<section>
+  <h1>Create Account</h1>
+  <form id="registerForm" class="card" method="post" action="/auth/register" novalidate>
+    <label>Email
+      <input type="email" name="email" id="email" required>
+    </label>
+    <label>Username
+      <input type="text" name="username" id="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+">
+    </label>
+    <label>Password
+      <input type="password" name="password" id="regPassword" required minlength="8">
+    </label>
+    <button type="submit" class="btn">Create Account</button>
+    <p class="form-msg" id="registerMsg" aria-live="polite"></p>
+  </form>
+</section>

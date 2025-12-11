@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}} | Neighborhood Watch NYC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/public/css/site.css">
+</head>
+
+<body>
+  <header class="nav">
+    <a class="brand" href="/">Neighborhood Watch NYC</a>
+    <nav>
+      {{#if user}}
+        <span class="hello">Hi, {{user.username}}</span>
+        <form class="inline" method="post" action="/auth/logout">
+          <button type="submit" class="btn">Logout</button>
+        </form>
+      {{else}}
+        <a class="btn" href="/auth/login">Login</a>
+        <a class="btn btn-alt" href="/auth/register">Register</a>
+      {{/if}}
+    </nav>
+  </header>
+
+  <main class="container">
+    {{{body}}}
+  </main>
+
+  <footer class="footer">
+    <small>Built for CS-546 (Auth slice).</small>
+  </footer>
+    <footer class="footer">
+    <small>Built for CS-546 (Auth slice).</small>
+  </footer>
+
+  <script src="/public/js/auth.js"></script>
+</body>
+</html>
