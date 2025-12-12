@@ -35,15 +35,39 @@
   <ul class="incident-list">
     {{#each incidents}}
     <li class="incident-item">
-      <strong>{{this.complaint_type}}</strong><br />
+      <strong>{{this.complaintType}}</strong><br />
       {{this.descriptor}}<br />
-      <em>{{this.created_date}}</em><br />
+      <em>{{this.createdDate}}</em><br />
       Status: {{this.status}}<br />
 
-      <a href="/incident/{{this.unique_key}}">View Details</a>
+      <a href="/incident/{{this.openDataId}}">View Details</a>
     </li>
     {{/each}}
   </ul>
+
+  {{!-- page --}}
+  <div class="pagination">
+    {{#if page}}
+    {{#if (gt page 1)}}
+    <form action="/feed" method="POST" style="display:inline;">
+      <input type="hidden" name="zip" value="{{zip}}" />
+      <input type="hidden" name="page" value="{{decrement page}}" />
+      <button type="submit">Previous</button>
+    </form>
+    {{/if}}
+
+    <span>Page {{page}}</span>
+
+    {{#if hasNextPage}}
+    <form action="/feed" method="POST" style="display:inline;">
+      <input type="hidden" name="zip" value="{{zip}}" />
+      <input type="hidden" name="page" value="{{increment page}}" />
+      <button type="submit">Next</button>
+    </form>
+    {{/if}}
+    {{/if}}
+  </div>
+
   {{else}}
   <p>No incidents found for this ZIP in the last 30 days.</p>
   {{/if}}

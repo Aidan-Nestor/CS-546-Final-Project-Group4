@@ -1,0 +1,46 @@
+<section>
+    <h1>Incident Details</h1>
+
+    <p>
+        <a href="/feed">← Back to Feed</a>
+    </p>
+</section>
+
+<hr />
+
+<section>
+    <h2>{{incident.complaintType}}</h2>
+
+    {{#if incident.descriptor}}
+    <p><strong>Description:</strong> {{incident.descriptor}}</p>
+    {{/if}}
+
+    <p><strong>Status:</strong> {{incident.status}}</p>
+
+    {{#if incident.agency}}
+    <p><strong>Agency:</strong> {{incident.agency}}</p>
+    {{/if}}
+
+    {{#if incident.incidentZip}}
+    <p><strong>ZIP Code:</strong> {{incident.incidentZip}}</p>
+    {{/if}}
+
+    {{#if incident.createdDate}}
+    <p><strong>Created:</strong> {{incident.createdDate}}</p>
+    {{/if}}
+</section>
+
+<hr />
+
+<section>
+    <h3>Location</h3>
+
+    {{#if incident.latitude}}
+    <p>
+        Latitude: {{incident.latitude}}<br />
+        Longitude: {{incident.longitude}}
+    </p>
+    {{else}}
+    <p>No location data available.</p>
+    {{/if}}
+</section>

@@ -37,7 +37,11 @@ app.engine(
   "handlebars",
   exphbs.engine({
     defaultLayout: "main",
-    helpers: {}
+    helpers: {
+      increment: (value) => Number(value) + 1,
+      decrement: (value) => Number(value) - 1,
+      gt: (a, b) => Number(a) > Number(b)
+    }
   })
 );
 app.set("view engine", "handlebars");
