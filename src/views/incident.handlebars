@@ -2,7 +2,7 @@
     <h1>Incident Details</h1>
 
     <p>
-        <a href="/feed?zip={{incident.incidentZip}}&page={{page}}">← Back to Feed</a>
+        <a href="/feed?zip={{zip}}&page={{page}}">← Back to Feed</a>
     </p>
 </section>
 
@@ -36,17 +36,46 @@
     <h3>Location</h3>
 
     {{#if incident.latitude}}
-    <p>
-        <div id="map"
-            data-lat="{{incident.latitude}}"
-            data-lng="{{incident.longitude}}"
-            data-complaint="{{incident.complaintType}}"
-            data-desc="{{incident.descriptor}}"
-            style="height:400px;">
-</div>
-    </p>
+    {{#if incident.longitude}}
+    <div id="map" data-lat="{{incident.latitude}}" data-lng="{{incident.longitude}}"
+        data-complaint="{{incident.complaintType}}" data-desc="{{incident.descriptor}}" style="height:400px;">
+    </div>
+    {{else}}
+    <p>No location data available.</p>
+    {{/if}}
     {{else}}
     <p>No location data available.</p>
     {{/if}}
 </section>
 <script src="/public/js/incidentMap.js"></script>
+
+<hr />
+
+<section>
+    <h3>Comments</h3>
+
+    {{#if user}}
+    <form action="/incident/{{incident.openDataId}}/comment" method="POST">
+        <input type="hidden" name="zip" value="{{zip}}">
+        <input type="hidden" name="page" value="{{page}}">
+        <textarea name="content" rows="3" required></textarea><br />
+        <button type="submit">Post Comment</button>
+    </form>
+    {{else}}
+    <p><a href="/auth/login">Login</a> to post a comment.</p>
+    {{/if}}
+
+    {{#if comments.length}}
+    <ul class="comment-list">
+        {{#each comments}}
+        <li>
+            <strong>{{this.username}}</strong><br />
+            {{this.content}}<br />
+            <small>{{this.createdAt}}</small>
+        </li>
+        {{/each}}
+    </ul>
+    {{else}}
+    <p>No comments yet.</p>
+    {{/if}}
+</section>
