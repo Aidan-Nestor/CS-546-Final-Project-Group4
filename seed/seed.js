@@ -9,7 +9,7 @@ const main = async () => {
   const db = getDB();
   await db.dropDatabase();
 
-  console.log("🌱 Seeding users...");
+  console.log("Seeding users.");
   await createUser({
     email: "demo@example.com",
     username: "demoUser",
@@ -20,7 +20,7 @@ const main = async () => {
     borough: "BROOKLYN"
   });
 
-  console.log("✅ Seed complete.");
+  console.log("Seed done.");
   process.exit(0);
 };
 

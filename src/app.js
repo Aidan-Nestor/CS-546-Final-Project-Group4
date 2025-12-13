@@ -19,7 +19,18 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(helmet());
+// added custom config to helmet's CSP middleware to allow the maps to work for leaflet. 
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://*.tile.openstreetmap.org/"],
+    },
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -53,5 +64,5 @@ app.use("/", routes);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });

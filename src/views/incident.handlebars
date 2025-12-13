@@ -37,10 +37,16 @@
 
     {{#if incident.latitude}}
     <p>
-        Latitude: {{incident.latitude}}<br />
-        Longitude: {{incident.longitude}}
+        <div id="map"
+            data-lat="{{incident.latitude}}"
+            data-lng="{{incident.longitude}}"
+            data-complaint="{{incident.complaintType}}"
+            data-desc="{{incident.descriptor}}"
+            style="height:400px;">
+</div>
     </p>
     {{else}}
     <p>No location data available.</p>
     {{/if}}
 </section>
+<script src="/public/js/incidentMap.js"></script>
