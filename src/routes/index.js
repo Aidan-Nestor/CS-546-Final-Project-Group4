@@ -17,7 +17,22 @@ router.use("/auth", authRoutes);
 // Feed page
 router.get("/feed", async (req, res) => {
   const user = req.session.user || null;
-  res.render("home", { title: "Neighborhood Feed", user });
+  const zip = req.query.zip || null;
+  const page = Number(req.query.page) || 1;
+  
+  let incidents = [];
+  let hasNextPage = false;
+
+  if (zip) {
+    const PAGE_SIZE = 10;
+    const skip = (page - 1) * PAGE_SIZE;
+
+    incidents = await getIncidentsByZip(zip, skip, PAGE_SIZE + 1);
+    hasNextPage = incidents.length > PAGE_SIZE;
+    incidents = incidents.slice(0, PAGE_SIZE);
+  }
+
+  return res.render("home", { title: "Neighborhood Feed", user, zip, page, incidents, hasNextPage });
 });
 
 // Handle ZIP search using stable dataset fhrw-4uyv
@@ -100,6 +115,8 @@ router.post("/feed", async (req, res) => {
 // Incident detail page
 router.get("/incident/:id", async (req, res) => {
   try {
+    console.log(req.query.zip)
+    console.log(req.query.page)
     const user = req.session.user || null;
     const { id } = req.params;
 
@@ -113,10 +130,15 @@ router.get("/incident/:id", async (req, res) => {
       });
     }
 
+    const zip = req.query.zip || null;
+    const page = Number(req.query.page) || 1;
+
     return res.render("incident", {
       title: "Incident Details",
       incident,
-      user
+      user,
+      zip,
+      page
     });
 
   } catch (err) {
