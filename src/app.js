@@ -32,6 +32,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use("/js", express.static(path.join(process.cwd(), "node_modules/jquery/dist")))
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(

@@ -139,7 +139,7 @@ router.post("/incident/:id/comment", async (req, res) => {
 
     await comments.createComment(
       id,
-      user._id,
+      user.id,
       user.username,
       content.trim()
     );
@@ -152,6 +152,30 @@ router.post("/incident/:id/comment", async (req, res) => {
   } catch (err) {
     console.error("POST COMMENT ERROR:", err);
     return res.status(500).send("Failed to post comment");
+  }
+});
+
+// handles voting on comments
+router.post("/comment/:commentId/vote", async (req, res) => {
+  try{
+    const user = req.session.user;
+    if (!user) {
+      return res.status(401).json({error: "Authorization Required."});
+    }
+    const { commentId } = req.params;
+    const { type } = req.body;
+    if(!["like", "dislike"].includes(type)){
+      return res.status(400).send("Invalid vote.");
+    }
+    const updatedComment = await comments.voteComment(commentId, user.id, type);
+    res.json({
+      commentId: updatedComment._id.toString(),
+      likes: updatedComment.likes.length,
+      dislikes: updatedComment.dislikes.length
+    });
+  }catch(e){
+    console.error("Error voting: ", e);
+    res.status(500).send("Failed to vote.")
   }
 });
 

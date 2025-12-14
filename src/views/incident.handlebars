@@ -47,7 +47,6 @@
     <p>No location data available.</p>
     {{/if}}
 </section>
-<script src="/public/js/incidentMap.js"></script>
 
 <hr />
 
@@ -68,10 +67,20 @@
     {{#if comments.length}}
     <ul class="comment-list">
         {{#each comments}}
-        <li>
+        <li id="comment-{{this._id}}" data-user-id="{{../user.id}}">
             <strong>{{this.username}}</strong><br />
             {{this.content}}<br />
             <small>{{this.createdAt}}</small>
+
+            <p>
+                <span id="likeCount-{{this._id}}">Likes: </span>
+                <button class="voteButton" id="likeButton-{{this._id}}" data-comment-id="{{this._id}}" data-type="like" data-incident-id="{{incident.openDataId}}">{{this.likes.length}}</button>
+
+                <span id="dislikeCount-{{this._id}}">Dislikes: </span>
+                <button class="voteButton" id="dislikeButton-{{this._id}}" data-comment-id="{{this._id}}" data-type="dislike" data-incident-id="{{incident.openDataId}}">{{this.dislikes.length}}</button>
+            </p>
+
+            
         </li>
         {{/each}}
     </ul>
@@ -79,3 +88,6 @@
     <p>No comments yet.</p>
     {{/if}}
 </section>
+<script src="/public/js/incidentMap.js"></script>
+<script src="/js/jquery.min.js"></script>
+<script src="/public/js/comments.js"></script>
