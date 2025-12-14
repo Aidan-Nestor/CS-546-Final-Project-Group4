@@ -1,0 +1,35 @@
+<section>
+  <h1>Data Ingestion</h1>
+  <p>Fetch incidents from NYC 311 API and save to database.</p>
+</section>
+
+<hr />
+
+<section>
+  <h2>Ingest Incidents</h2>
+  
+  <form id="ingestForm" class="ingest-form">
+    <label for="zip">
+      ZIP Code (optional):
+      <input type="text" id="zip" name="zip" placeholder="e.g., 10001" pattern="\d{5}" />
+      <small>Leave empty to fetch all ZIP codes</small>
+    </label>
+
+    <label for="days">
+      Days to fetch:
+      <input type="number" id="days" name="days" value="30" min="1" max="365" />
+      <small>Number of days back from today (default: 30)</small>
+    </label>
+
+    <label for="limit">
+      Limit:
+      <input type="number" id="limit" name="limit" value="1000" min="1" max="5000" />
+      <small>Maximum number of incidents to fetch (default: 1000, max: 5000)</small>
+    </label>
+
+    <button type="submit">Fetch & Save Data</button>
+  </form>
+
+  <div id="ingestResult" class="ingest-result" style="display: none;"></div>
+</section>
+

@@ -5,6 +5,9 @@
   <title>{{title}} | Neighborhood Watch NYC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/public/css/site.css">
+  {{#if adminPage}}
+  <link rel="stylesheet" href="/public/css/admin.css">
+  {{/if}}
   <link rel="stylesheet" href="/public/leaflet/leaflet.css">
   <script src="/public/leaflet/leaflet.js"></script>
 
@@ -16,6 +19,8 @@
   <header class="nav">
     <a class="brand" href="/">Neighborhood Watch NYC</a>
     <nav>
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/trends">Trends</a>
       {{#if user}}
         <span class="hello">Hi, {{user.username}}</span>
         <form class="inline" method="post" action="/auth/logout">

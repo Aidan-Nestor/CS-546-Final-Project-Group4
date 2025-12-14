@@ -1,91 +1,108 @@
-<section>
-    <h1>Incident Details</h1>
-
-    <p>
-        <a href="/feed?zip={{zip}}&page={{page}}">← Back to Feed</a>
-    </p>
-</section>
-
-<hr />
-
-<section>
-    <h2>{{incident.complaintType}}</h2>
-
-    {{#if incident.descriptor}}
-    <p><strong>Description:</strong> {{incident.descriptor}}</p>
-    {{/if}}
-
-    <p><strong>Status:</strong> {{incident.status}}</p>
-
-    {{#if incident.agency}}
-    <p><strong>Agency:</strong> {{incident.agency}}</p>
-    {{/if}}
-
-    {{#if incident.incidentZip}}
-    <p><strong>ZIP Code:</strong> {{incident.incidentZip}}</p>
-    {{/if}}
-
-    {{#if incident.createdDate}}
-    <p><strong>Created:</strong> {{incident.createdDate}}</p>
-    {{/if}}
-</section>
-
-<hr />
-
-<section>
-    <h3>Location</h3>
-
-    {{#if incident.latitude}}
-    {{#if incident.longitude}}
-    <div id="map" data-lat="{{incident.latitude}}" data-lng="{{incident.longitude}}"
-        data-complaint="{{incident.complaintType}}" data-desc="{{incident.descriptor}}" style="height:400px;">
+<section class="incident-header">
+    <div class="incident-header-top">
+        <a href="/feed?zip={{zip}}&page={{page}}" class="back-link">← Back to Feed</a>
     </div>
-    {{else}}
-    <p>No location data available.</p>
-    {{/if}}
-    {{else}}
-    <p>No location data available.</p>
-    {{/if}}
+    <h1>{{incident.complaintType}}</h1>
 </section>
 
-<hr />
+<section class="incident-details-card">
+    <div class="incident-detail-grid">
+        {{#if incident.descriptor}}
+        <div class="detail-item">
+            <span class="detail-label">Description:</span>
+            <span class="detail-value">{{incident.descriptor}}</span>
+        </div>
+        {{/if}}
 
-<section>
+        <div class="detail-item">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value status-badge status-{{incident.status}}">{{incident.status}}</span>
+        </div>
+
+        {{#if incident.agency}}
+        <div class="detail-item">
+            <span class="detail-label">Agency:</span>
+            <span class="detail-value">{{incident.agency}}</span>
+        </div>
+        {{/if}}
+
+        {{#if incident.incidentZip}}
+        <div class="detail-item">
+            <span class="detail-label">ZIP Code:</span>
+            <span class="detail-value">{{incident.incidentZip}}</span>
+        </div>
+        {{/if}}
+
+        {{#if incident.createdDate}}
+        <div class="detail-item">
+            <span class="detail-label">Created:</span>
+            <span class="detail-value">{{incident.createdDate}}</span>
+        </div>
+        {{/if}}
+    </div>
+</section>
+
+{{#if incident.latitude}}
+{{#if incident.longitude}}
+<section class="incident-map-section">
+    <h3>Location</h3>
+    <div id="map" data-lat="{{incident.latitude}}" data-lng="{{incident.longitude}}"
+        data-complaint="{{incident.complaintType}}" data-desc="{{incident.descriptor}}" class="incident-map">
+    </div>
+</section>
+{{else}}
+<section class="incident-map-section">
+    <h3>Location</h3>
+    <p class="no-location">No location data available.</p>
+</section>
+{{/if}}
+{{else}}
+<section class="incident-map-section">
+    <h3>Location</h3>
+    <p class="no-location">No location data available.</p>
+</section>
+{{/if}}
+
+<section class="comments-section">
     <h3>Comments</h3>
 
     {{#if user}}
-    <form action="/incident/{{incident.openDataId}}/comment" method="POST">
+    <form class="comment-form" action="/incident/{{incident.openDataId}}/comment" method="POST">
         <input type="hidden" name="zip" value="{{zip}}">
         <input type="hidden" name="page" value="{{page}}">
-        <textarea name="content" rows="3" required></textarea><br />
-        <button type="submit">Post Comment</button>
+        <textarea name="content" rows="3" placeholder="Write a comment..." required></textarea>
+        <button type="submit" class="btn">Post Comment</button>
     </form>
     {{else}}
-    <p><a href="/auth/login">Login</a> to post a comment.</p>
+    <p class="login-prompt"><a href="/auth/login">Login</a> to post a comment.</p>
     {{/if}}
 
     {{#if comments.length}}
     <ul class="comment-list">
         {{#each comments}}
-        <li id="comment-{{this._id}}" data-user-id="{{../user.id}}">
-            <strong>{{this.username}}</strong><br />
-            {{this.content}}<br />
-            <small>{{this.createdAt}}</small>
-
-            <p>
-                <span id="likeCount-{{this._id}}">Likes: </span>
-                <button class="voteButton" id="likeButton-{{this._id}}" data-comment-id="{{this._id}}" data-type="like" data-incident-id="{{incident.openDataId}}">{{this.likes.length}}</button>
-
-                <span id="dislikeCount-{{this._id}}">Dislikes: </span>
-                <button class="voteButton" id="dislikeButton-{{this._id}}" data-comment-id="{{this._id}}" data-type="dislike" data-incident-id="{{incident.openDataId}}">{{this.dislikes.length}}</button>
-            </p>
-
-            
+        <li class="comment-item" id="comment-{{this._id}}" data-user-id="{{../user.id}}">
+            <div class="comment-header">
+                <strong class="comment-author">{{this.username}}</strong>
+                <small class="comment-date">{{this.createdAt}}</small>
+            </div>
+            <div class="comment-content">
+                {{this.content}}
+            </div>
+            <div class="comment-actions">
+                <button class="vote-btn vote-btn-like" id="likeButton-{{this._id}}" data-comment-id="{{this._id}}" data-type="like" data-incident-id="{{../incident.openDataId}}">
+                    <span class="vote-icon">👍</span>
+                    <span class="vote-count" id="likeCount-{{this._id}}">{{#if this.likes}}{{this.likes.length}}{{else}}0{{/if}}</span>
+                </button>
+                <button class="vote-btn vote-btn-dislike" id="dislikeButton-{{this._id}}" data-comment-id="{{this._id}}" data-type="dislike" data-incident-id="{{../incident.openDataId}}">
+                    <span class="vote-icon">👎</span>
+                    <span class="vote-count" id="dislikeCount-{{this._id}}">{{#if this.dislikes}}{{this.dislikes.length}}{{else}}0{{/if}}</span>
+                </button>
+            </div>
         </li>
         {{/each}}
     </ul>
     {{else}}
-    <p>No comments yet.</p>
+    <p class="no-comments">No comments yet. Be the first to comment!</p>
     {{/if}}
 </section>
 <script src="/public/js/incidentMap.js"></script>

@@ -1,4 +1,5 @@
 import { getDB } from "../config/mongoConnection.js";
+import axios from "axios";
 
 // Return the incidents collection and ensure a unique index on openDataId
 const getIncidentsCollection = async () => {
@@ -18,7 +19,7 @@ export const saveIncidents = async (rawIncidents) => {
             openDataId: String(i.unique_key),
             complaintType: i.complaint_type || null,
             descriptor: i.descriptor || null,
-            incidentZip: i.incident_zip || null,
+            incidentZip: i.incident_zip ? String(i.incident_zip).padStart(5, '0') : null,
             agency: i.agency || null,
             status: i.status || null,
             createdDate: i.created_date ? new Date(i.created_date) : null,
@@ -37,11 +38,19 @@ export const saveIncidents = async (rawIncidents) => {
     }
 };
 
+// Normalize ZIP code to 5-digit string with leading zeros
+const normalizeZip = (zip) => {
+    if (!zip) return null;
+    const zipStr = String(zip).trim();
+    return zipStr.padStart(5, '0');
+};
+
 // Read recent incidents by ZIP from MongoDB
 export const getIncidentsByZip = async (zip, skip = 0, limit = 50) => {
     const col = await getIncidentsCollection();
+    const normalizedZip = normalizeZip(zip);
     return col
-        .find({ incidentZip: zip })
+        .find({ incidentZip: normalizedZip })
         .sort({ createdDate: -1 })
         .skip(skip)
         .limit(limit)
@@ -67,8 +76,9 @@ export async function getIncidentsWithFilters({
     const db = getDB();
     const col = db.collection("incidents");
 
+    const normalizedZip = normalizeZip(zip);
     const query = {
-        incidentZip: zip,
+        incidentZip: normalizedZip,
         createdDate: { $ne: null }
     };
 
@@ -95,4 +105,79 @@ export async function getIncidentsWithFilters({
         .skip(skip)
         .limit(limit)
         .toArray();
+}
+
+// Fetch incidents directly from NYC 311 API (no caching)
+export async function fetchIncidentsFromAPI({
+    zip,
+    limit = 1000,
+    days = 30,
+    status,
+    complaintType,
+    agency,
+    sort = "newest"
+}) {
+    try {
+        // Calculate date range
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - Number(days));
+        startDate.setHours(0, 0, 0, 0);
+        const dateStr = startDate.toISOString().split('.')[0];
+
+        // Build Socrata API query
+        const baseUrl = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
+        const params = new URLSearchParams();
+        
+        // Build $where clause
+        // If days is very large (like 3650), don't use date filter to get all history
+        let whereClause = "";
+        if (days < 3650) {
+            whereClause = `created_date >= '${dateStr}'`;
+        }
+        if (zip) {
+            if (whereClause) {
+                whereClause += ` AND incident_zip = '${zip}'`;
+            } else {
+                whereClause = `incident_zip = '${zip}'`;
+            }
+        }
+        if (status) {
+            whereClause += ` AND status = '${status}'`;
+        }
+        if (complaintType) {
+            whereClause += ` AND complaint_type LIKE '%${complaintType}%'`;
+        }
+        if (agency) {
+            whereClause += ` AND agency LIKE '%${agency}%'`;
+        }
+        
+        params.append("$where", whereClause);
+        params.append("$limit", String(Math.min(Number(limit), 5000)));
+        params.append("$order", sort === "oldest" ? "created_date ASC" : "created_date DESC");
+
+        const apiUrl = `${baseUrl}?${params.toString()}`;
+
+        const response = await axios.get(apiUrl, {
+            timeout: 30000,
+            headers: { "Accept": "application/json" }
+        });
+
+        const rawIncidents = Array.isArray(response.data) ? response.data : [];
+
+        // Transform API data to match our database format
+        return rawIncidents.map((i) => ({
+            openDataId: String(i.unique_key),
+            complaintType: i.complaint_type || null,
+            descriptor: i.descriptor || null,
+            incidentZip: i.incident_zip ? String(i.incident_zip).padStart(5, '0') : null,
+            agency: i.agency || null,
+            status: i.status || null,
+            createdDate: i.created_date ? new Date(i.created_date) : null,
+            latitude: i.latitude != null ? Number(i.latitude) : null,
+            longitude: i.longitude != null ? Number(i.longitude) : null
+        }));
+    } catch (err) {
+        console.error("API fetch error:", err);
+        throw new Error("Failed to fetch data from NYC 311 API");
+    }
 }

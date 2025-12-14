@@ -1,0 +1,103 @@
+<section class="trends-header">
+    <h1>Trending Incidents</h1>
+    <p>Discover the most discussed incidents in NYC</p>
+</section>
+
+<section class="trends-controls">
+    <div class="trends-filters">
+        <form action="/trends" method="GET" class="trends-filter-form">
+            <label>
+                <span>Show:</span>
+                <select name="type">
+                    <option value="comments" {{#if (eq type "comments")}}selected{{/if}}>Most Commented</option>
+                    <option value="likes" {{#if (eq type "likes")}}selected{{/if}}>Most Liked</option>
+                    <option value="dislikes" {{#if (eq type "dislikes")}}selected{{/if}}>Most Disliked</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Period:</span>
+                <select name="period">
+                    <option value="day" {{#if (eq period "day")}}selected{{/if}}>Last 24 Hours</option>
+                    <option value="week" {{#if (eq period "week")}}selected{{/if}}>Last Week</option>
+                    <option value="month" {{#if (eq period "month")}}selected{{/if}}>Last Month</option>
+                    <option value="all" {{#if (eq period "all")}}selected{{/if}}>All Time</option>
+                </select>
+            </label>
+
+            <button type="submit" class="btn">Update Trends</button>
+        </form>
+    </div>
+</section>
+
+<section class="trends-content">
+    <h2>
+      {{#if (eq type "comments")}}{{typeLabels.comments}}{{/if}}
+      {{#if (eq type "likes")}}{{typeLabels.likes}}{{/if}}
+      {{#if (eq type "dislikes")}}{{typeLabels.dislikes}}{{/if}}
+      - 
+      {{#if (eq period "day")}}{{periodLabels.day}}{{/if}}
+      {{#if (eq period "week")}}{{periodLabels.week}}{{/if}}
+      {{#if (eq period "month")}}{{periodLabels.month}}{{/if}}
+      {{#if (eq period "all")}}{{periodLabels.all}}{{/if}}
+    </h2>
+
+    {{#if trends.length}}
+    <ul class="trends-list">
+        {{#each trends}}
+        <li class="trend-item">
+            <div class="trend-rank">
+                <span class="rank-number">#{{increment @index}}</span>
+            </div>
+            <div class="trend-details">
+                {{#if this.incident}}
+                <h3>
+                    <a href="/incident/{{this.incident.openDataId}}">{{this.incident.complaintType}}</a>
+                </h3>
+                {{#if this.incident.descriptor}}
+                <p class="trend-descriptor">{{this.incident.descriptor}}</p>
+                {{/if}}
+                <div class="trend-meta">
+                    {{#if this.incident.incidentZip}}
+                    <span class="trend-zip">ZIP: {{this.incident.incidentZip}}</span>
+                    {{/if}}
+                    {{#if this.incident.status}}
+                    <span class="trend-status status-badge status-{{this.incident.status}}">{{this.incident.status}}</span>
+                    {{/if}}
+                    {{#if this.incident.createdDate}}
+                    <span class="trend-date">{{this.incident.createdDate}}</span>
+                    {{/if}}
+                </div>
+                {{else}}
+                <p class="trend-error">Incident data not available</p>
+                {{/if}}
+            </div>
+            <div class="trend-stats">
+                <div class="stat-value">{{this.count}}</div>
+                <div class="stat-label">
+                    {{#if (eq ../type "comments")}}
+                    Comment{{#if (gt this.count 1)}}s{{/if}}
+                    {{/if}}
+                    {{#if (eq ../type "likes")}}
+                    Like{{#if (gt this.count 1)}}s{{/if}}
+                    {{/if}}
+                    {{#if (eq ../type "dislikes")}}
+                    Dislike{{#if (gt this.count 1)}}s{{/if}}
+                    {{/if}}
+                </div>
+            </div>
+        </li>
+        {{/each}}
+    </ul>
+    {{else}}
+    <div class="no-trends">
+        {{#if error}}
+        <p><strong>Error: {{error}}</strong></p>
+        {{else}}
+        <p><strong>No trending incidents found</strong></p>
+        <p>Try selecting a different time period or trend type.</p>
+        {{/if}}
+    </div>
+    {{/if}}
+</section>
+
