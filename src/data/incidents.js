@@ -53,3 +53,46 @@ export const getIncidentById = async (id) => {
     const col = await getIncidentsCollection();
     return col.findOne({ openDataId: String(id) });
 };
+
+// Filters
+export async function getIncidentsWithFilters({
+    zip,
+    skip = 0,
+    limit = 10,
+    status,
+    complaintType,
+    agency,
+    sort = "newest"
+}) {
+    const db = getDB();
+    const col = db.collection("incidents");
+
+    const query = {
+        incidentZip: zip,
+        createdDate: { $ne: null }
+    };
+
+    if (status) {
+        query.status = status;
+    }
+
+    if (complaintType) {
+        query.complaintType = { $regex: complaintType, $options: "i" };
+    }
+
+    if (agency) {
+        query.agency = { $regex: agency, $options: "i" };
+    }
+
+    const sortOption =
+        sort === "oldest"
+            ? { createdDate: 1 }
+            : { createdDate: -1 };
+
+    return col
+        .find(query)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+}

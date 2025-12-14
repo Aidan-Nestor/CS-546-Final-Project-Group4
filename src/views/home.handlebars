@@ -31,6 +31,45 @@
 <section>
   <h2>Recent Incidents for ZIP {{zip}}</h2>
 
+  <section class="quick-filters">
+    <h3>Quick Filters</h3>
+    <form action="/feed" method="GET">
+      <input type="hidden" name="zip" value="{{zip}}">
+      <input type="hidden" name="page" value="1">
+
+      <label>
+        Status:
+        <select name="status">
+          <option value="">All</option>
+          <option value="Open" {{#if (eq status "Open" )}}selected{{/if}}>Open</option>
+          <option value="Closed" {{#if (eq status "Closed" )}}selected{{/if}}>Closed</option>
+        </select>
+      </label>
+
+      <label>
+        Complaint Type:
+        <input type="text" name="complaintType" placeholder="e.g. Noise" value="{{complaintType}}">
+      </label>
+
+      <label>
+        Agency:
+        <input type="text" name="agency" placeholder="e.g. NYPD" value="{{agency}}">
+      </label>
+
+      <label>
+        Sort By:
+        <select name="sort">
+          <option value="">Newest</option>
+          <option value="oldest" {{#if (eq sort "oldest" )}}selected{{/if}}>
+            Oldest
+          </option>
+        </select>
+      </label>
+
+      <button type="submit">Apply Filters</button>
+    </form>
+  </section>
+
   {{#if incidents.length}}
   <ul class="incident-list">
     {{#each incidents}}
@@ -48,10 +87,15 @@
   {{!-- page --}}
   <div class="pagination">
     {{#if page}}
+
     {{#if (gt page 1)}}
-    <form action="/feed" method="POST" style="display:inline;">
-      <input type="hidden" name="zip" value="{{zip}}" />
-      <input type="hidden" name="page" value="{{decrement page}}" />
+    <form action="/feed" method="GET" style="display:inline;">
+      <input type="hidden" name="zip" value="{{zip}}">
+      <input type="hidden" name="page" value="{{decrement page}}">
+      <input type="hidden" name="status" value="{{status}}">
+      <input type="hidden" name="complaintType" value="{{complaintType}}">
+      <input type="hidden" name="agency" value="{{agency}}">
+      <input type="hidden" name="sort" value="{{sort}}">
       <button type="submit">Previous</button>
     </form>
     {{/if}}
@@ -59,12 +103,17 @@
     <span>Page {{page}}</span>
 
     {{#if hasNextPage}}
-    <form action="/feed" method="POST" style="display:inline;">
-      <input type="hidden" name="zip" value="{{zip}}" />
-      <input type="hidden" name="page" value="{{increment page}}" />
+    <form action="/feed" method="GET" style="display:inline;">
+      <input type="hidden" name="zip" value="{{zip}}">
+      <input type="hidden" name="page" value="{{increment page}}">
+      <input type="hidden" name="status" value="{{status}}">
+      <input type="hidden" name="complaintType" value="{{complaintType}}">
+      <input type="hidden" name="agency" value="{{agency}}">
+      <input type="hidden" name="sort" value="{{sort}}">
       <button type="submit">Next</button>
     </form>
     {{/if}}
+
     {{/if}}
   </div>
 

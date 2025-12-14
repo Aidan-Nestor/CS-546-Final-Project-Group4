@@ -51,7 +51,8 @@ app.engine(
     helpers: {
       increment: (value) => Number(value) + 1,
       decrement: (value) => Number(value) - 1,
-      gt: (a, b) => Number(a) > Number(b)
+      gt: (a, b) => Number(a) > Number(b),
+      eq: (a, b) => a === b
     }
   })
 );

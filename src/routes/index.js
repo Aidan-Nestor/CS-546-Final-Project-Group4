@@ -5,6 +5,7 @@ import { saveIncidents } from "../data/incidents.js";
 import { getIncidentsByZip } from "../data/incidents.js";
 import { getIncidentById } from "../data/incidents.js";
 import * as comments from "../data/comments.js";
+import { getIncidentsWithFilters } from "../data/incidents.js";
 
 const router = Router();
 
@@ -15,11 +16,19 @@ router.get("/", (req, res) => {
 
 router.use("/auth", authRoutes);
 
-// Feed page
+// Feed page(add Quick Filters)
 router.get("/feed", async (req, res) => {
   const user = req.session.user || null;
-  const zip = req.query.zip || null;
+  const {
+    zip,
+    status,
+    complaintType,
+    agency,
+    sort
+  } = req.query;
+
   const page = Number(req.query.page) || 1;
+
   let incidents = [];
   let hasNextPage = false;
 
@@ -27,95 +36,48 @@ router.get("/feed", async (req, res) => {
     const PAGE_SIZE = 10;
     const skip = (page - 1) * PAGE_SIZE;
 
-    incidents = await getIncidentsByZip(zip, skip, PAGE_SIZE + 1);
+    incidents = await getIncidentsWithFilters({
+      zip,
+      skip,
+      limit: PAGE_SIZE + 1,
+      status,
+      complaintType,
+      agency,
+      sort
+    });
+
     hasNextPage = incidents.length > PAGE_SIZE;
     incidents = incidents.slice(0, PAGE_SIZE);
   }
 
-  return res.render("home", { title: "Neighborhood Feed", user, zip, page, incidents, hasNextPage });
+  return res.render("home", {
+    title: "Neighborhood Feed",
+    user,
+    zip,
+    page,
+    incidents,
+    hasNextPage,
+    status,
+    complaintType,
+    agency,
+    sort
+  });
 });
 
 // Handle ZIP search using stable dataset fhrw-4uyv
 router.post("/feed", async (req, res) => {
-  try {
-    const user = req.session.user || null;
-    const { zip, page = 1 } = req.body;
+  const { zip } = req.body;
 
-    // Validate ZIP
-    if (!zip || !/^\d{5}$/.test(zip)) {
-      return res.status(400).render("home", {
-        title: "Neighborhood Feed",
-        error: "Please enter a valid 5-digit ZIP code.",
-        user
-      });
-    }
-
-    const PAGE_SIZE = 10; // Items per page
-    const currentPage = Number(page) || 1;
-    const skip = (currentPage - 1) * PAGE_SIZE;
-
-    // Try to load incidents from MongoDB first
-    let incidents = await getIncidentsByZip(zip, skip, PAGE_SIZE + 1);
-
-    let hasNextPage = incidents.length > PAGE_SIZE;
-
-    // Trim extra record used for pagination check
-    incidents = incidents.slice(0, PAGE_SIZE);
-
-    if (incidents.length > 0) {
-      return res.render("home", {
-        title: "Neighborhood Feed",
-        incidents,
-        zip,
-        user,
-        page: currentPage,
-        hasNextPage
-      });
-    }
-
-    // NYC 311 query (stable dataset)
-    const apiURL =
-      "https://data.cityofnewyork.us/resource/fhrw-4uyv.json?" +
-      `$where=incident_zip='${zip}'` +
-      "&$order=created_date DESC" +
-      "&$limit=300";
-
-    try {
-      const { data } = await axios.get(apiURL);
-      incidents = data;
-    } catch (apiErr) {
-      console.error("311 API ERROR:", apiErr?.response?.status);
-      return res.status(500).render("home", {
-        title: "Neighborhood Feed",
-        error: "NYC 311 API is unavailable. Try again later.",
-        user
-      });
-    }
-    // Save fetched incidents into MongoDB
-    await saveIncidents(incidents);
-
-    // Apply pagination to API results (same as DB path)
-    const pagedIncidents = await getIncidentsByZip(zip, skip, PAGE_SIZE + 1);
-    hasNextPage = pagedIncidents.length > PAGE_SIZE;
-
-    const incidentsToRender = pagedIncidents.slice(0, PAGE_SIZE);
-
-    return res.render("home", {
+  // Validate ZIP
+  if (!zip || !/^\d{5}$/.test(zip)) {
+    return res.status(400).render("home", {
       title: "Neighborhood Feed",
-      incidents: incidentsToRender,
-      zip,
-      user,
-      page: currentPage,
-      hasNextPage
-    });
-
-  } catch (err) {
-    console.error("SERVER ERROR:", err);
-    return res.status(500).render("home", {
-      title: "Neighborhood Feed",
-      error: "Unexpected server error."
+      error: "Please enter a valid 5-digit ZIP code."
     });
   }
+
+  // Redirect to GET /feed so Quick Filters & pagination work together
+  return res.redirect(`/feed?zip=${zip}&page=1`);
 });
 
 // Incident detail page
