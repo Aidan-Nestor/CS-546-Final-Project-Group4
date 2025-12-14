@@ -1,8 +1,6 @@
 import { getDB } from "../config/mongoConnection.js";
 import { ObjectId } from "mongodb";
 
-
-// Explicit named exports
 export async function createComment(incidentId, userId, username, content) {
   const db = getDB();
   const col = db.collection("comments");
@@ -28,7 +26,6 @@ export async function getCommentsByIncident(incidentId) {
     .sort({ createdAt: -1 })
     .toArray();
   
-  // Ensure all comments have likes and dislikes arrays
   return comments.map(comment => ({
     ...comment,
     likes: comment.likes || [],
@@ -66,16 +63,14 @@ export async function voteComment(commentId, userId, voteType){
   return result;
 }
 
-// Get trending incidents based on comments, likes, or dislikes
 export async function getTrendingIncidents({ 
-  type = "comments", // "comments", "likes", "dislikes"
-  period = "all", // "day", "week", "month", "all"
+  type = "comments",
+  period = "all",
   limit = 10 
 }) {
   const db = getDB();
   const col = db.collection("comments");
   
-  // Calculate date range
   let startDate = null;
   if (period !== "all") {
     startDate = new Date();
@@ -89,20 +84,16 @@ export async function getTrendingIncidents({
     startDate.setHours(0, 0, 0, 0);
   }
   
-  // Build match stage for date filter
   const matchStage = startDate 
     ? { createdAt: { $gte: startDate } }
     : {};
   
-  // Aggregate based on type
   let groupField;
   let projectStage = null;
   
   if (type === "comments") {
-    // Count comments per incident
     groupField = { $sum: 1 };
   } else if (type === "likes") {
-    // Sum likes per incident - ensure likes is always an array
     projectStage = {
       $project: {
         incidentId: 1,
@@ -112,7 +103,6 @@ export async function getTrendingIncidents({
     };
     groupField = { $sum: { $size: "$likes" } };
   } else if (type === "dislikes") {
-    // Sum dislikes per incident - ensure dislikes is always an array
     projectStage = {
       $project: {
         incidentId: 1,
@@ -127,7 +117,6 @@ export async function getTrendingIncidents({
     { $match: matchStage }
   ];
   
-  // Add project stage if needed (for likes/dislikes)
   if (projectStage) {
     pipeline.push(projectStage);
   }
@@ -137,7 +126,6 @@ export async function getTrendingIncidents({
       $group: {
         _id: "$incidentId",
         count: groupField,
-        // Also get comment details for reference
         latestComment: { $max: "$createdAt" }
       }
     },

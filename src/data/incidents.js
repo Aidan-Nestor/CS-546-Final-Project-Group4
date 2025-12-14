@@ -1,7 +1,6 @@
 import { getDB } from "../config/mongoConnection.js";
 import axios from "axios";
 
-// Return the incidents collection and ensure a unique index on openDataId
 const getIncidentsCollection = async () => {
     const db = getDB();
     const col = db.collection("incidents");
@@ -9,12 +8,11 @@ const getIncidentsCollection = async () => {
     return col;
 };
 
-// Save NYC 311 incidents into MongoDB (duplicates are skipped via unique index)
 export const saveIncidents = async (rawIncidents) => {
     const col = await getIncidentsCollection();
 
     const docs = rawIncidents
-        .filter((i) => i && i.unique_key) // Keep only records with a unique_key
+        .filter((i) => i && i.unique_key)
         .map((i) => ({
             openDataId: String(i.unique_key),
             complaintType: i.complaint_type || null,
@@ -33,19 +31,16 @@ export const saveIncidents = async (rawIncidents) => {
     try {
         await col.insertMany(docs, { ordered: false });
     } catch (e) {
-        // Ignore duplicate key errors; other errors should still surface
         if (e?.code !== 11000) throw e;
     }
 };
 
-// Normalize ZIP code to 5-digit string with leading zeros
 const normalizeZip = (zip) => {
     if (!zip) return null;
     const zipStr = String(zip).trim();
     return zipStr.padStart(5, '0');
 };
 
-// Read recent incidents by ZIP from MongoDB
 export const getIncidentsByZip = async (zip, skip = 0, limit = 50) => {
     const col = await getIncidentsCollection();
     const normalizedZip = normalizeZip(zip);
@@ -57,13 +52,11 @@ export const getIncidentsByZip = async (zip, skip = 0, limit = 50) => {
         .toArray();
 };
 
-// Read a single incident by openDataId
 export const getIncidentById = async (id) => {
     const col = await getIncidentsCollection();
     return col.findOne({ openDataId: String(id) });
 };
 
-// Filters
 export async function getIncidentsWithFilters({
     zip,
     skip = 0,
@@ -107,13 +100,11 @@ export async function getIncidentsWithFilters({
         .toArray();
 }
 
-// Escape single quotes in SoQL string literals
 const escapeSoQLString = (str) => {
     if (!str) return str;
     return String(str).replace(/'/g, "''");
 };
 
-// Fetch incidents directly from NYC 311 API (no caching)
 export async function fetchIncidentsFromAPI({
     zip,
     limit = 1000,
@@ -124,18 +115,14 @@ export async function fetchIncidentsFromAPI({
     sort = "newest"
 }) {
     try {
-        // Calculate date range
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - Number(days));
         startDate.setHours(0, 0, 0, 0);
         const dateStr = startDate.toISOString().split('.')[0];
 
-        // Build Socrata API query
         const baseUrl = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
         const params = new URLSearchParams();
         
-        // Build $where clause with proper escaping and AND handling
-        // If days is very large (like 3650), don't use date filter to get all history
         const conditions = [];
         
         if (days < 3650) {
@@ -155,7 +142,6 @@ export async function fetchIncidentsFromAPI({
             conditions.push(`agency LIKE '%${escapeSoQLString(agency)}%'`);
         }
         
-        // Join conditions with AND, only add $where if we have conditions
         if (conditions.length > 0) {
             const whereClause = conditions.join(' AND ');
             params.append("$where", whereClause);
@@ -173,7 +159,6 @@ export async function fetchIncidentsFromAPI({
 
         const rawIncidents = Array.isArray(response.data) ? response.data : [];
 
-        // Transform API data to match our database format
         return rawIncidents.map((i) => ({
             openDataId: String(i.unique_key),
             complaintType: i.complaint_type || null,

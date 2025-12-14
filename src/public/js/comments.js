@@ -13,7 +13,6 @@ $(document).ready(function(){
             return;
         }
 
-        // Add loading state
         button.prop('disabled', true);
         const originalContent = button.html();
 
@@ -23,9 +22,7 @@ $(document).ready(function(){
             data: JSON.stringify({type, incidentId}),
             contentType: 'application/json',
             success: function(data){
-                // Update like count
                 $(`#likeCount-${commentId}`).text(data.likes);
-                // Update dislike count
                 $(`#dislikeCount-${commentId}`).text(data.dislikes);
             },
             error: function(err){

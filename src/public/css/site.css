@@ -153,7 +153,6 @@ details {
     margin-top: .5rem;
 }
 
-/* Auto-fetch notice */
 .auto-fetch-notice {
     background: rgba(46, 204, 113, 0.15);
     border: 1px solid var(--ok);
@@ -172,7 +171,6 @@ details {
     font-size: 1.1rem;
 }
 
-/* API toggle option */
 .api-option {
     background: var(--card);
     border: 1px solid #273246;
@@ -254,7 +252,6 @@ details {
     line-height: 1.4;
 }
 
-/* Feed layout with sidebar */
 .feed-layout {
     display: grid;
     grid-template-columns: 280px 1fr;
@@ -277,13 +274,11 @@ details {
     }
 }
 
-/* Sidebar filters */
 .sidebar-filters {
     position: sticky;
     top: 1rem;
 }
 
-/* Quick filters section */
 .quick-filters {
     background: var(--card);
     border: 1px solid #273246;
@@ -324,12 +319,10 @@ details {
     margin-top: 0.5rem;
 }
 
-/* Feed content area */
 .feed-content {
-    min-width: 0; /* Prevents grid overflow */
+    min-width: 0;
 }
 
-/* Incident list styles */
 .incident-list {
     list-style: none;
     padding: 0;
@@ -384,7 +377,6 @@ details {
     text-decoration: none;
 }
 
-/* Pagination styles */
 .pagination {
     display: flex;
     align-items: center;
@@ -423,7 +415,6 @@ details {
     margin: 0;
 }
 
-/* Incident detail page styles */
 .incident-header {
     margin-bottom: 1.5rem;
 }
@@ -531,7 +522,6 @@ details {
     margin: 0;
 }
 
-/* Comments section */
 .comments-section {
     background: var(--card);
     border: 1px solid #273246;
@@ -694,7 +684,6 @@ details {
     font-style: italic;
 }
 
-/* Trends page styles */
 .trends-header {
     margin-bottom: 2rem;
 }
@@ -870,7 +859,6 @@ details {
     font-size: 1.1rem;
 }
 
-/* No results message */
 .no-results {
     background: var(--card);
     border: 1px solid #273246;

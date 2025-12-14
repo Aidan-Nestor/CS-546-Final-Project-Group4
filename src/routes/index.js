@@ -11,7 +11,6 @@ router.get("/", (req, res) => {
   res.render("home", { title: "Home", user });
 });
 
-// Admin page for data ingestion
 router.get("/admin/ingest", (req, res) => {
   const user = req.session.user || null;
   res.render("admin", { 
@@ -24,7 +23,6 @@ router.get("/admin/ingest", (req, res) => {
 
 router.use("/auth", authRoutes);
 
-// Feed page(add Quick Filters)
 router.get("/feed", async (req, res) => {
   const user = req.session.user || null;
   const {
@@ -33,20 +31,19 @@ router.get("/feed", async (req, res) => {
     complaintType,
     agency,
     sort,
-    useAPI // New query param: if "true", query API directly instead of DB
+    useAPI
   } = req.query;
 
   const page = Number(req.query.page) || 1;
 
   let incidents = [];
   let hasNextPage = false;
-  let autoFetched = false; // Track if we auto-fetched from API
+  let autoFetched = false;
 
   if (zip) {
     const PAGE_SIZE = 10;
     const skip = (page - 1) * PAGE_SIZE;
 
-    // If useAPI is true, fetch directly from API (no caching)
     if (useAPI === "true") {
       try {
         const allIncidents = await fetchIncidentsFromAPI({
@@ -59,7 +56,6 @@ router.get("/feed", async (req, res) => {
           sort
         });
 
-        // Manual pagination for API results
         const startIdx = skip;
         const endIdx = startIdx + PAGE_SIZE;
         incidents = allIncidents.slice(startIdx, endIdx);
@@ -81,7 +77,6 @@ router.get("/feed", async (req, res) => {
         });
       }
     } else {
-      // Query from database first
       incidents = await getIncidentsWithFilters({
         zip,
         skip,
@@ -95,16 +90,14 @@ router.get("/feed", async (req, res) => {
       hasNextPage = incidents.length > PAGE_SIZE;
       incidents = incidents.slice(0, PAGE_SIZE);
 
-      // If no results found in DB and no filters applied (first search), auto-fetch from API
       if (incidents.length === 0 && !status && !complaintType && !agency && page === 1) {
         try {
           console.log(`Auto-fetching incidents for ZIP ${zip} from API...`);
           
-          // Try to get at least PAGE_SIZE (10) records by expanding date range
           const MIN_RECORDS = PAGE_SIZE;
           let apiIncidents = [];
           let daysUsed = 30;
-          const dateRanges = [30, 90, 180, 365]; // Try progressively longer ranges
+          const dateRanges = [30, 90, 180, 365];
           
           for (const days of dateRanges) {
             apiIncidents = await fetchIncidentsFromAPI({
@@ -117,48 +110,38 @@ router.get("/feed", async (req, res) => {
             
             daysUsed = days;
             
-            // If we have at least MIN_RECORDS, stop searching
             if (apiIncidents.length >= MIN_RECORDS) {
               console.log(`Found ${apiIncidents.length} incidents (>= ${MIN_RECORDS}), stopping search`);
               break;
             }
             
-            // If this is the last range and still no results, try without date limit
             if (days === dateRanges[dateRanges.length - 1] && apiIncidents.length === 0) {
               console.log(`No incidents found in last ${days} days, trying all historical data for ZIP ${zip}...`);
               
-              // Try without date limit to get historical data
               apiIncidents = await fetchIncidentsFromAPI({
                 zip,
                 limit: 1000,
-                days: 3650 // 10 years as a large number, but API will return all available
+                days: 3650
               });
               
               console.log(`Fetched ${apiIncidents.length} incidents from API for ZIP ${zip} (all history)`);
-              daysUsed = 3650; // Mark as using all history
+              daysUsed = 3650;
               break;
             }
             
-            // If this is the last range and we have some results, use them
             if (days === dateRanges[dateRanges.length - 1] && apiIncidents.length > 0) {
               console.log(`Reached maximum date range (${days} days), using ${apiIncidents.length} incidents found`);
               break;
             }
             
-            // Otherwise, try next range
             console.log(`Only found ${apiIncidents.length} incidents (< ${MIN_RECORDS}), trying ${dateRanges[dateRanges.indexOf(days) + 1]} days...`);
           }
 
-          // Save to database for future queries
-          // Need to fetch raw API data for saveIncidents (which expects original API format)
           if (apiIncidents.length > 0) {
-            // Re-fetch raw data from API for saving
-            // Use same date range as the successful API fetch
             const daysToUse = daysUsed;
             const baseUrl = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
             const params = new URLSearchParams();
             
-            // Build where clause - if daysUsed >= 3650, don't use date filter
             if (daysToUse >= 3650) {
               params.append("$where", `incident_zip = '${zip}'`);
             } else {
@@ -188,7 +171,6 @@ router.get("/feed", async (req, res) => {
             }
           }
 
-          // Now query from DB again with the newly saved data
           const refreshedIncidents = await getIncidentsWithFilters({
             zip,
             skip,
@@ -206,7 +188,6 @@ router.get("/feed", async (req, res) => {
           autoFetched = true;
         } catch (err) {
           console.error("Auto-fetch error:", err);
-          // Continue with empty results if API fetch fails
         }
       }
     }
@@ -228,11 +209,9 @@ router.get("/feed", async (req, res) => {
   });
 });
 
-// Handle ZIP search using stable dataset fhrw-4uyv
 router.post("/feed", async (req, res) => {
   const { zip } = req.body;
 
-  // Validate ZIP
   if (!zip || !/^\d{5}$/.test(zip)) {
     return res.status(400).render("home", {
       title: "Neighborhood Feed",
@@ -240,17 +219,13 @@ router.post("/feed", async (req, res) => {
     });
   }
 
-  // Redirect to GET /feed so Quick Filters & pagination work together
   return res.redirect(`/feed?zip=${zip}&page=1`);
 });
 
-// Data ingestion endpoint: Fetch incidents from NYC 311 API and save to DB
-// This is a separate, explicit step to avoid side effects in GET /feed
 router.post("/api/ingest", async (req, res) => {
   try {
     const { zip, limit = 1000, days = 30 } = req.body;
 
-    // Validate ZIP if provided
     if (zip && !/^\d{5}$/.test(zip)) {
       return res.status(400).json({ 
         ok: false, 
@@ -258,34 +233,27 @@ router.post("/api/ingest", async (req, res) => {
       });
     }
 
-    // Calculate date range (last N days)
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - Number(days));
     startDate.setHours(0, 0, 0, 0);
     
-    // Format date for Socrata API (YYYY-MM-DDTHH:mm:ss format)
-    const dateStr = startDate.toISOString().split('.')[0]; // Remove milliseconds
+    const dateStr = startDate.toISOString().split('.')[0];
 
-    // Build Socrata API query
-    // NYC 311 API endpoint: https://data.cityofnewyork.us/resource/erm2-nwe9.json
     const baseUrl = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
     const params = new URLSearchParams();
     
-    // Build $where clause for date range and optional ZIP
-    // Socrata uses SoQL syntax for date comparisons
     let whereClause = `created_date >= '${dateStr}'`;
     if (zip) {
       whereClause += ` AND incident_zip = '${zip}'`;
     }
     params.append("$where", whereClause);
-    params.append("$limit", String(Math.min(Number(limit), 5000))); // Cap at 5000
+    params.append("$limit", String(Math.min(Number(limit), 5000)));
     params.append("$order", "created_date DESC");
 
     const apiUrl = `${baseUrl}?${params.toString()}`;
 
-    // Fetch data from NYC 311 API
     const response = await axios.get(apiUrl, {
-      timeout: 30000, // 30 second timeout
+      timeout: 30000,
       headers: {
         "Accept": "application/json"
       }
@@ -301,7 +269,6 @@ router.post("/api/ingest", async (req, res) => {
       });
     }
 
-    // Save incidents to database
     await saveIncidents(rawIncidents);
 
     return res.json({ 
@@ -314,7 +281,6 @@ router.post("/api/ingest", async (req, res) => {
   } catch (err) {
     console.error("API INGEST ERROR:", err);
     
-    // Handle specific error cases
     if (err.code === "ECONNABORTED" || err.code === "ETIMEDOUT") {
       return res.status(504).json({ 
         ok: false, 
@@ -336,7 +302,6 @@ router.post("/api/ingest", async (req, res) => {
   }
 });
 
-// Incident detail page
 router.get("/incident/:id", async (req, res) => {
   try {
     const user = req.session.user || null;
@@ -351,11 +316,9 @@ router.get("/incident/:id", async (req, res) => {
       });
     }
 
-    // Keep feed state
     const zip = req.query.zip || null;
     const page = Number(req.query.page) || 1;
 
-    // Load comments for this incident
     const commentsList = await comments.getCommentsByIncident(id);
 
     return res.render("incident", {
@@ -411,7 +374,6 @@ router.post("/incident/:id/comment", async (req, res) => {
   }
 });
 
-// handles voting on comments
 router.post("/comment/:commentId/vote", async (req, res) => {
   try{
     const user = req.session.user;
@@ -435,13 +397,11 @@ router.post("/comment/:commentId/vote", async (req, res) => {
   }
 });
 
-// Trends page - Simple Trends feature
 router.get("/trends", async (req, res) => {
   try {
     const user = req.session.user || null;
     const { type = "comments", period = "all" } = req.query;
     
-    // Validate parameters
     const validTypes = ["comments", "likes", "dislikes"];
     const validPeriods = ["day", "week", "month", "all"];
     
@@ -453,14 +413,12 @@ router.get("/trends", async (req, res) => {
       });
     }
     
-    // Get trending incidents
     const trending = await comments.getTrendingIncidents({
       type,
       period,
       limit: 10
     });
     
-    // Fetch incident details for trending incidents
     const incidentsWithDetails = await Promise.all(
       trending.map(async (item) => {
         const incident = await getIncidentById(item.incidentId);
@@ -471,7 +429,6 @@ router.get("/trends", async (req, res) => {
       })
     );
     
-    // Filter out incidents that don't exist
     const validIncidents = incidentsWithDetails.filter(item => item.incident !== null);
     
     return res.render("trends", {

@@ -1,4 +1,3 @@
-// Admin page JavaScript for data ingestion
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ingestForm");
   const resultDiv = document.getElementById("ingestResult");
@@ -15,15 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
       limit: Number(formData.get("limit")) || 1000
     };
 
-    // Remove empty zip
     if (!data.zip) delete data.zip;
 
-    // Show loading state
     resultDiv.style.display = "block";
     resultDiv.innerHTML = "<p>Fetching data from NYC 311 API...</p>";
     resultDiv.className = "ingest-result";
 
-    // Disable form during request
     const submitButton = form.querySelector('button[type="submit"]');
     const originalButtonText = submitButton.textContent;
     submitButton.disabled = true;
@@ -68,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       resultDiv.className = "ingest-result error";
     } finally {
-      // Re-enable form
       submitButton.disabled = false;
       submitButton.textContent = originalButtonText;
     }
