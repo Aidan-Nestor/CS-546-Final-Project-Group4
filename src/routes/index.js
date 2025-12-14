@@ -4,6 +4,7 @@ import axios from "axios";
 import { saveIncidents, getIncidentsByZip, getIncidentById, getIncidentsWithFilters, fetchIncidentsFromAPI } from "../data/incidents.js";
 import * as comments from "../data/comments.js";
 import { validateCommentContent } from "../middleware/validation.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -12,7 +13,16 @@ router.get("/", (req, res) => {
   res.render("home", { title: "Home", user });
 });
 
-router.get("/admin/ingest", (req, res) => {
+router.get("/admin", requireAdmin, (req, res) => {
+  const user = req.session.user || null;
+  res.render("admin-dashboard", { 
+    title: "Admin Dashboard", 
+    user,
+    adminPage: true
+  });
+});
+
+router.get("/admin/ingest", requireAdmin, (req, res) => {
   const user = req.session.user || null;
   res.render("admin", { 
     title: "Data Ingestion", 
@@ -223,7 +233,7 @@ router.post("/feed", async (req, res) => {
   return res.redirect(`/feed?zip=${zip}&page=1`);
 });
 
-router.post("/api/ingest", async (req, res) => {
+router.post("/api/ingest", requireAdmin, async (req, res) => {
   try {
     const { zip, limit = 1000, days = 30 } = req.body;
 

@@ -86,3 +86,67 @@
   display: none;
 }
 
+.admin-features {
+  margin: 2rem 0;
+}
+
+.admin-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.admin-card {
+  padding: 1.5rem;
+  border: 1px solid #2b3b52;
+  border-radius: 0.6rem;
+  background: rgba(15, 20, 27, 0.5);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.admin-card:hover {
+  border-color: #375a7f;
+  background: rgba(15, 20, 27, 0.7);
+}
+
+.admin-card h3 {
+  margin: 0 0 0.75rem 0;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+.admin-card p {
+  margin: 0 0 1rem 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.admin-card .btn {
+  display: inline-block;
+  padding: 0.55rem 0.9rem;
+  background: var(--accent);
+  color: #041019;
+  border: none;
+  border-radius: 0.45rem;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  text-decoration: none;
+  transition: filter 0.2s;
+}
+
+.admin-card .btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.admin-card .btn:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.admin-card .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--muted);
+}
+
