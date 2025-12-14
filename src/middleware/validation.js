@@ -24,3 +24,11 @@ export const validatePassword = (p) => {
     throw new Error("Password must contain letters and numbers.");
   return s;
 };
+
+export const validateCommentContent = (content) => {
+  if (!isNonEmptyString(content)) throw new Error("Comment content is required.");
+  const trimmed = content.trim();
+  if (trimmed.length === 0) throw new Error("Comment cannot be empty.");
+  if (trimmed.length > 500) throw new Error("Comment must be 500 characters or less.");
+  return trimmed;
+};

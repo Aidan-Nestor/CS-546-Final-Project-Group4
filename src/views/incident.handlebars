@@ -67,10 +67,14 @@
     <h3>Comments</h3>
 
     {{#if user}}
+    {{#if error}}
+    <p class="error" style="color: var(--bad); margin-bottom: 1rem;">{{error}}</p>
+    {{/if}}
     <form class="comment-form" action="/incident/{{incident.openDataId}}/comment" method="POST">
         <input type="hidden" name="zip" value="{{zip}}">
         <input type="hidden" name="page" value="{{page}}">
-        <textarea name="content" rows="3" placeholder="Write a comment..." required></textarea>
+        <textarea name="content" rows="3" placeholder="Write a comment..." required maxlength="500" minlength="1"></textarea>
+        <small class="char-count">0/500 characters</small>
         <button type="submit" class="btn">Post Comment</button>
     </form>
     {{else}}
@@ -108,3 +112,4 @@
 <script src="/public/js/incidentMap.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/public/js/comments.js"></script>
+<script src="/public/js/commentForm.js"></script>

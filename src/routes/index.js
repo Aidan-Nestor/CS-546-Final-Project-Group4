@@ -3,6 +3,7 @@ import authRoutes from "./auth.js";
 import axios from "axios";
 import { saveIncidents, getIncidentsByZip, getIncidentById, getIncidentsWithFilters, fetchIncidentsFromAPI } from "../data/incidents.js";
 import * as comments from "../data/comments.js";
+import { validateCommentContent } from "../middleware/validation.js";
 
 const router = Router();
 
@@ -327,7 +328,8 @@ router.get("/incident/:id", async (req, res) => {
       comments: commentsList,
       user,
       zip,
-      page
+      page,
+      error: req.query.error || null
     });
   } catch (err) {
     console.error("INCIDENT DETAIL ERROR:", err);
@@ -349,18 +351,20 @@ router.post("/incident/:id/comment", async (req, res) => {
     const { id } = req.params;
     const { content, zip: bodyZip = "", page: bodyPage = "" } = req.body;
 
-    if (!content || !content.trim() || content.trim().length > 500) {
+    try {
+      validateCommentContent(content);
+    } catch (validationError) {
       const query = new URLSearchParams();
       if (bodyZip) query.append("zip", bodyZip);
       if (bodyPage) query.append("page", bodyPage);
-      return res.redirect(`/incident/${id}?${query.toString()}`);
+      return res.redirect(`/incident/${id}?${query.toString()}&error=${encodeURIComponent(validationError.message)}`);
     }
 
     await comments.createComment(
       id,
       user.id,
       user.username,
-      content.trim()
+      content
     );
 
     const query = new URLSearchParams();

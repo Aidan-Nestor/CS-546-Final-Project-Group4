@@ -42,8 +42,19 @@ const normalizeZip = (zip) => {
 };
 
 export const getIncidentsByZip = async (zip, skip = 0, limit = 50) => {
+    if (!zip) {
+        throw new Error("ZIP code is required.");
+    }
+    if (!/^\d{5}$/.test(String(zip).trim())) {
+        throw new Error("ZIP code must be 5 digits.");
+    }
+    
     const col = await getIncidentsCollection();
     const normalizedZip = normalizeZip(zip);
+    if (!normalizedZip) {
+        throw new Error("Invalid ZIP code format.");
+    }
+    
     return col
         .find({ incidentZip: normalizedZip })
         .sort({ createdDate: -1 })
@@ -66,10 +77,21 @@ export async function getIncidentsWithFilters({
     agency,
     sort = "newest"
 }) {
+    if (!zip) {
+        throw new Error("ZIP code is required.");
+    }
+    if (!/^\d{5}$/.test(String(zip).trim())) {
+        throw new Error("ZIP code must be 5 digits.");
+    }
+    
     const db = getDB();
     const col = db.collection("incidents");
 
     const normalizedZip = normalizeZip(zip);
+    if (!normalizedZip) {
+        throw new Error("Invalid ZIP code format.");
+    }
+    
     const query = {
         incidentZip: normalizedZip,
         createdDate: { $ne: null }

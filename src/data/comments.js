@@ -1,15 +1,22 @@
 import { getDB } from "../config/mongoConnection.js";
 import { ObjectId } from "mongodb";
+import { validateCommentContent } from "../middleware/validation.js";
 
 export async function createComment(incidentId, userId, username, content) {
+  if (!incidentId || !userId || !username) {
+    throw new Error("Incident ID, user ID, and username are required.");
+  }
+  
+  const validatedContent = validateCommentContent(content);
+  
   const db = getDB();
   const col = db.collection("comments");
 
   const comment = {
     incidentId: String(incidentId),
     userId: String(userId),
-    username,
-    content,
+    username: String(username).trim(),
+    content: validatedContent,
     createdAt: new Date(),
     likes: [],
     dislikes: []
@@ -34,12 +41,26 @@ export async function getCommentsByIncident(incidentId) {
 }
 
 export async function voteComment(commentId, userId, voteType){
+  if (!commentId || !userId) {
+    throw new Error("Comment ID and user ID are required.");
+  }
+  if (!["like", "dislike"].includes(voteType)) {
+    throw new Error("Vote type must be 'like' or 'dislike'.");
+  }
+  
   const db = getDB();
   const col = db.collection("comments");
   
   userId = String(userId);
-  const comment = await col.findOne({_id: new ObjectId(commentId)});
-  if (!comment) throw `Comment not found.`;
+  let commentIdObj;
+  try {
+    commentIdObj = new ObjectId(commentId);
+  } catch (e) {
+    throw new Error("Invalid comment ID format.");
+  }
+  
+  const comment = await col.findOne({_id: commentIdObj});
+  if (!comment) throw new Error("Comment not found.");
   let likes = comment.likes || [];
   let dislikes = comment.dislikes || [];
   if(voteType==="like"){
