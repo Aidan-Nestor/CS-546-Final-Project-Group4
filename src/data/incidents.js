@@ -107,6 +107,12 @@ export async function getIncidentsWithFilters({
         .toArray();
 }
 
+// Escape single quotes in SoQL string literals
+const escapeSoQLString = (str) => {
+    if (!str) return str;
+    return String(str).replace(/'/g, "''");
+};
+
 // Fetch incidents directly from NYC 311 API (no caching)
 export async function fetchIncidentsFromAPI({
     zip,
@@ -128,30 +134,33 @@ export async function fetchIncidentsFromAPI({
         const baseUrl = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
         const params = new URLSearchParams();
         
-        // Build $where clause
+        // Build $where clause with proper escaping and AND handling
         // If days is very large (like 3650), don't use date filter to get all history
-        let whereClause = "";
+        const conditions = [];
+        
         if (days < 3650) {
-            whereClause = `created_date >= '${dateStr}'`;
+            conditions.push(`created_date >= '${dateStr}'`);
         }
         if (zip) {
-            if (whereClause) {
-                whereClause += ` AND incident_zip = '${zip}'`;
-            } else {
-                whereClause = `incident_zip = '${zip}'`;
-            }
+            const normalizedZip = normalizeZip(zip);
+            conditions.push(`incident_zip = '${escapeSoQLString(normalizedZip)}'`);
         }
         if (status) {
-            whereClause += ` AND status = '${status}'`;
+            conditions.push(`status = '${escapeSoQLString(status)}'`);
         }
         if (complaintType) {
-            whereClause += ` AND complaint_type LIKE '%${complaintType}%'`;
+            conditions.push(`complaint_type LIKE '%${escapeSoQLString(complaintType)}%'`);
         }
         if (agency) {
-            whereClause += ` AND agency LIKE '%${agency}%'`;
+            conditions.push(`agency LIKE '%${escapeSoQLString(agency)}%'`);
         }
         
-        params.append("$where", whereClause);
+        // Join conditions with AND, only add $where if we have conditions
+        if (conditions.length > 0) {
+            const whereClause = conditions.join(' AND ');
+            params.append("$where", whereClause);
+        }
+        
         params.append("$limit", String(Math.min(Number(limit), 5000)));
         params.append("$order", sort === "oldest" ? "created_date ASC" : "created_date DESC");
 

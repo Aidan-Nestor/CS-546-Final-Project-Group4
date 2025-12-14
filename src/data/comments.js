@@ -78,14 +78,13 @@ export async function getTrendingIncidents({
   // Calculate date range
   let startDate = null;
   if (period !== "all") {
-    const now = new Date();
     startDate = new Date();
     if (period === "day") {
-      startDate.setDate(now.getDate() - 1);
+      startDate.setDate(startDate.getDate() - 1);
     } else if (period === "week") {
-      startDate.setDate(now.getDate() - 7);
+      startDate.setDate(startDate.getDate() - 7);
     } else if (period === "month") {
-      startDate.setDate(now.getDate() - 30);
+      startDate.setDate(startDate.getDate() - 30);
     }
     startDate.setHours(0, 0, 0, 0);
   }
