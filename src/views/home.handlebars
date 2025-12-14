@@ -18,10 +18,10 @@
     <label for="zip">Enter ZIP Code:</label>
     <input type="text" id="zip" name="zip" value="{{zip}}" placeholder="e.g., 10001" required />
 
-    <button type="submit">Search</button>
+    <button type="submit" aria-label="Search for incidents in this ZIP code">Search</button>
 
     {{#if error}}
-    <p class="error">{{error}}</p>
+    <p class="error" role="alert" aria-live="polite">{{error}}</p>
     {{/if}}
   </form>
 </section>
@@ -47,28 +47,28 @@
           </label>
         </div>
 
-        <label>
+        <label for="filter-status">
           Status:
-          <select name="status">
+          <select name="status" id="filter-status">
             <option value="">All</option>
             <option value="Open" {{#if (eq status "Open" )}}selected{{/if}}>Open</option>
             <option value="Closed" {{#if (eq status "Closed" )}}selected{{/if}}>Closed</option>
           </select>
         </label>
 
-        <label>
+        <label for="filter-complaintType">
           Complaint Type:
-          <input type="text" name="complaintType" placeholder="e.g. Noise" value="{{complaintType}}">
+          <input type="text" name="complaintType" id="filter-complaintType" placeholder="e.g. Noise" value="{{complaintType}}">
         </label>
 
-        <label>
+        <label for="filter-agency">
           Agency:
-          <input type="text" name="agency" placeholder="e.g. NYPD" value="{{agency}}">
+          <input type="text" name="agency" id="filter-agency" placeholder="e.g. NYPD" value="{{agency}}">
         </label>
 
-        <label>
+        <label for="filter-sort">
           Sort By:
-          <select name="sort">
+          <select name="sort" id="filter-sort">
             <option value="">Newest</option>
             <option value="oldest" {{#if (eq sort "oldest" )}}selected{{/if}}>
               Oldest
@@ -76,7 +76,7 @@
           </select>
         </label>
 
-        <button type="submit" class="btn">Apply Filters</button>
+        <button type="submit" class="btn" aria-label="Apply selected filters">Apply Filters</button>
       </form>
     </section>
   </aside>
@@ -111,7 +111,7 @@
     {{#if page}}
 
     {{#if (gt page 1)}}
-    <form action="/feed" method="GET" style="display:inline;">
+    <form action="/feed" method="GET" class="inline-form">
       <input type="hidden" name="zip" value="{{zip}}">
       <input type="hidden" name="page" value="{{decrement page}}">
       <input type="hidden" name="status" value="{{status}}">
@@ -128,7 +128,7 @@
     <span>Page {{page}}</span>
 
     {{#if hasNextPage}}
-    <form action="/feed" method="GET" style="display:inline;">
+    <form action="/feed" method="GET" class="inline-form">
       <input type="hidden" name="zip" value="{{zip}}">
       <input type="hidden" name="page" value="{{increment page}}">
       <input type="hidden" name="status" value="{{status}}">

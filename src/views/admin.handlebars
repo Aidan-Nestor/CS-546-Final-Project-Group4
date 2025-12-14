@@ -27,9 +27,9 @@
       <small>Maximum number of incidents to fetch (default: 1000, max: 5000)</small>
     </label>
 
-    <button type="submit">Fetch & Save Data</button>
+    <button type="submit" aria-label="Fetch and save incidents from NYC 311 API">Fetch & Save Data</button>
   </form>
 
-  <div id="ingestResult" class="ingest-result" style="display: none;"></div>
+  <div id="ingestResult" class="ingest-result ingest-result-hidden" role="status" aria-live="polite"></div>
 </section>
 

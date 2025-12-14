@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!data.zip) delete data.zip;
 
-    resultDiv.style.display = "block";
+    resultDiv.classList.remove("ingest-result-hidden");
     resultDiv.textContent = "";
     const loadingP = document.createElement("p");
     loadingP.textContent = "Fetching data from NYC 311 API...";

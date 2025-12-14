@@ -1,13 +1,13 @@
 <section>
   <h1>Login</h1>
   <form id="loginForm" class="card" method="post" action="/auth/login" novalidate>
-    <label>Username or Email
-      <input type="text" name="identifier" id="identifier" required>
+    <label for="identifier">Username or Email
+      <input type="text" name="identifier" id="identifier" required aria-required="true">
     </label>
-    <label>Password
-      <input type="password" name="password" id="password" required minlength="8">
+    <label for="password">Password
+      <input type="password" name="password" id="password" required minlength="8" aria-required="true">
     </label>
-    <button type="submit" class="btn">Sign In</button>
-    <p class="form-msg" id="loginMsg" aria-live="polite"></p>
+    <button type="submit" class="btn" aria-label="Sign in to your account">Sign In</button>
+    <p class="form-msg" id="loginMsg" aria-live="polite" role="status"></p>
   </form>
 </section>

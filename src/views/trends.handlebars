@@ -92,7 +92,7 @@
     {{else}}
     <div class="no-trends">
         {{#if error}}
-        <p><strong>Error: {{error}}</strong></p>
+        <p role="alert" aria-live="polite"><strong>Error: {{error}}</strong></p>
         {{else}}
         <p><strong>No trending incidents found</strong></p>
         <p>Try selecting a different time period or trend type.</p>

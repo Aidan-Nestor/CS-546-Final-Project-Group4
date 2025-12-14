@@ -68,14 +68,15 @@
 
     {{#if user}}
     {{#if error}}
-    <p class="error comment-error">{{error}}</p>
+    <p class="error comment-error" role="alert" aria-live="polite">{{error}}</p>
     {{/if}}
     <form class="comment-form" action="/incident/{{incident.openDataId}}/comment" method="POST">
         <input type="hidden" name="zip" value="{{zip}}">
         <input type="hidden" name="page" value="{{page}}">
-        <textarea name="content" rows="3" placeholder="Write a comment..." required maxlength="500" minlength="1"></textarea>
-        <small class="char-count">0/500 characters</small>
-        <button type="submit" class="btn">Post Comment</button>
+        <label for="comment-content" class="sr-only">Comment</label>
+        <textarea name="content" id="comment-content" rows="3" placeholder="Write a comment..." required maxlength="500" minlength="1" aria-describedby="char-count" aria-required="true"></textarea>
+        <small class="char-count" id="char-count" aria-live="polite">0/500 characters</small>
+        <button type="submit" class="btn" aria-label="Post your comment">Post Comment</button>
     </form>
     {{else}}
     <p class="login-prompt"><a href="/auth/login">Login</a> to post a comment.</p>
