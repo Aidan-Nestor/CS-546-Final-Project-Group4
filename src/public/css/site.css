@@ -572,6 +572,21 @@ details {
     margin-top: 0.5rem;
 }
 
+.comment-error {
+    color: var(--bad);
+    margin-bottom: 1rem;
+}
+
+.login-message {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.login-message .login-link {
+    color: var(--accent);
+}
+
 .login-prompt {
     color: var(--muted);
     margin-bottom: 1.5rem;

@@ -40,9 +40,17 @@ function showLoginMessage(commentId){
     if(container.length){
         return;
     }
-    const message = `<div id="loginMessage-${commentId}" class="loginRequired" style="margin-top: 0.5rem; color: var(--muted); font-size: 0.9rem;">
-      <a href="/auth/login" style="color: var(--accent);">Log in</a> to like or dislike comments.
-    </div>`;
-
-    $(`#comment-${commentId} .comment-actions`).after(message);
+    const messageDiv = $('<div>', {
+        id: `loginMessage-${commentId}`,
+        class: 'loginRequired login-message'
+    });
+    const loginLink = $('<a>', {
+        href: '/auth/login',
+        text: 'Log in',
+        class: 'login-link'
+    });
+    messageDiv.append(loginLink);
+    messageDiv.append(' to like or dislike comments.');
+    
+    $(`#comment-${commentId} .comment-actions`).after(messageDiv);
 }

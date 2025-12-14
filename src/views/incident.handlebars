@@ -68,7 +68,7 @@
 
     {{#if user}}
     {{#if error}}
-    <p class="error" style="color: var(--bad); margin-bottom: 1rem;">{{error}}</p>
+    <p class="error comment-error">{{error}}</p>
     {{/if}}
     <form class="comment-form" action="/incident/{{incident.openDataId}}/comment" method="POST">
         <input type="hidden" name="zip" value="{{zip}}">
