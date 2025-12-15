@@ -32,6 +32,83 @@ router.get("/admin/ingest", requireAdmin, (req, res) => {
   });
 });
 
+router.get("/admin/moderation", requireAdmin, (req, res) => {
+  const user = req.session.user || null;
+  res.render("admin-moderation", { 
+    title: "Comment Moderation", 
+    user,
+    adminPage: true,
+    scripts: '<script src="/public/js/moderation.js"></script>'
+  });
+});
+
+router.get("/api/moderation/comments", requireAdmin, async (req, res) => {
+  try {
+    const status = req.query.status || null;
+    const hasReports = req.query.hasReports === "true" ? true : req.query.hasReports === "false" ? false : null;
+    const limit = Number(req.query.limit) || 50;
+    const skip = Number(req.query.skip) || 0;
+    
+    const commentsList = await comments.getCommentsForModeration({
+      status,
+      hasReports,
+      limit,
+      skip
+    });
+    
+    const commentsWithIncidents = await Promise.all(
+      commentsList.map(async (comment) => {
+        const incident = await getIncidentById(comment.incidentId).catch(() => null);
+        return {
+          ...comment,
+          incident
+        };
+      })
+    );
+    
+    res.json({
+      ok: true,
+      comments: commentsWithIncidents
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({
+      ok: false,
+      error: err.message || "Error fetching comments"
+    });
+  }
+});
+
+router.post("/api/moderation/comment/:commentId/approve", requireAdmin, async (req, res) => {
+  try {
+    const result = await comments.moderateComment(req.params.commentId, "approve", req.session.user.id);
+    res.json({ ok: true, comment: result });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+router.post("/api/moderation/comment/:commentId/reject", requireAdmin, async (req, res) => {
+  try {
+    const result = await comments.moderateComment(req.params.commentId, "reject", req.session.user.id);
+    res.json({ ok: true, comment: result });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+router.post("/api/moderation/comment/:commentId/delete", requireAdmin, async (req, res) => {
+  try {
+    await comments.moderateComment(req.params.commentId, "delete", req.session.user.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
 router.use("/auth", authRoutes);
 
 router.get("/feed", async (req, res) => {

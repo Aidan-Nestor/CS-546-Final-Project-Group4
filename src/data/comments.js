@@ -18,8 +18,10 @@ export async function createComment(incidentId, userId, username, content) {
     username: String(username).trim(),
     content: validatedContent,
     createdAt: new Date(),
+    status: "approved",
     likes: [],
-    dislikes: []
+    dislikes: [],
+    reports: []
   };
   await col.insertOne(comment);
 }
@@ -29,14 +31,18 @@ export async function getCommentsByIncident(incidentId) {
   const col = db.collection("comments");
 
   const comments = await col
-    .find({ incidentId: String(incidentId) })
+    .find({ 
+      incidentId: String(incidentId),
+      status: "approved"
+    })
     .sort({ createdAt: -1 })
     .toArray();
   
   return comments.map(comment => ({
     ...comment,
     likes: comment.likes || [],
-    dislikes: comment.dislikes || []
+    dislikes: comment.dislikes || [],
+    reports: comment.reports || []
   }));
 }
 
@@ -54,7 +60,7 @@ export async function voteComment(commentId, userId, voteType){
   userId = String(userId);
   let commentIdObj;
   try {
-    commentIdObj = new ObjectId(commentId);
+    commentIdObj = new ObjectId(String(commentId));
   } catch (e) {
     throw new Error("Invalid comment ID format.");
   }
@@ -79,7 +85,7 @@ export async function voteComment(commentId, userId, voteType){
     }
   }
 
-  const result = await col.findOneAndUpdate({_id: new ObjectId(commentId)}, {$set: {likes, dislikes}}, { returnDocument: "after" });
+  const result = await col.findOneAndUpdate({_id: commentIdObj}, {$set: {likes, dislikes}}, { returnDocument: "after" });
   
   return result;
 }
@@ -135,7 +141,12 @@ export async function getTrendingIncidents({
   }
   
   const pipeline = [
-    { $match: matchStage }
+    { 
+      $match: {
+        ...matchStage,
+        status: "approved"
+      }
+    }
   ];
   
   if (projectStage) {
@@ -161,4 +172,139 @@ export async function getTrendingIncidents({
     count: r.count,
     latestComment: r.latestComment
   }));
+}
+
+export async function reportComment(commentId, userId, reason) {
+  if (!commentId || !userId || !reason) {
+    throw new Error("Comment ID, user ID, and reason are required.");
+  }
+  
+  const db = getDB();
+  const col = db.collection("comments");
+  
+  userId = String(userId);
+  let commentIdObj;
+  try {
+    commentIdObj = new ObjectId(String(commentId));
+  } catch (e) {
+    throw new Error("Invalid comment ID format.");
+  }
+  
+  const comment = await col.findOne({ _id: commentIdObj });
+  if (!comment) {
+    throw new Error("Comment not found.");
+  }
+  
+  const reports = comment.reports || [];
+  const existingReport = reports.find(r => r.userId === userId);
+  
+  if (existingReport) {
+    throw new Error("You have already reported this comment.");
+  }
+  
+  const reportEntry = {
+    userId: userId,
+    reason: String(reason).trim(),
+    createdAt: new Date()
+  };
+  
+  const result = await col.findOneAndUpdate(
+    { _id: commentIdObj },
+    { 
+      $push: { reports: reportEntry }
+    },
+    { returnDocument: "after" }
+  );
+  
+  return result;
+}
+
+export async function getCommentsForModeration({ 
+  status = null, 
+  hasReports = null,
+  limit = 50,
+  skip = 0
+} = {}) {
+  const db = getDB();
+  const col = db.collection("comments");
+  
+  const query = {};
+  
+  if (status) {
+    query.status = status;
+  }
+  
+  if (hasReports === true) {
+    query.reports = { $exists: true, $ne: [] };
+  } else if (hasReports === false) {
+    query.$or = [
+      { reports: { $exists: false } },
+      { reports: { $size: 0 } }
+    ];
+  }
+  
+  const comments = await col
+    .find(query)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+  
+  return comments.map(comment => ({
+    ...comment,
+    likes: comment.likes || [],
+    dislikes: comment.dislikes || [],
+    reports: comment.reports || [],
+    status: comment.status || "approved"
+  }));
+}
+
+export async function moderateComment(commentId, action, adminId) {
+  if (!commentId || !action || !adminId) {
+    throw new Error("Missing required parameters");
+  }
+  
+  const db = getDB();
+  const col = db.collection("comments");
+  
+  let commentIdObj;
+  try {
+    commentIdObj = new ObjectId(String(commentId));
+  } catch (e) {
+    throw new Error("Invalid comment ID");
+  }
+  
+  const comment = await col.findOne({ _id: commentIdObj });
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+  
+  if (action === "delete") {
+    await col.deleteOne({ _id: commentIdObj });
+    return { deleted: true };
+  }
+  
+  let newStatus = "approved";
+  if (action === "reject") {
+    newStatus = "rejected";
+  }
+  
+  const result = await col.findOneAndUpdate(
+    { _id: commentIdObj },
+    { 
+      $set: { 
+        status: newStatus,
+        moderatedAt: new Date(),
+        moderatedBy: String(adminId)
+      } 
+    },
+    { returnDocument: "after" }
+  );
+  
+  return {
+    ...result,
+    likes: result.likes || [],
+    dislikes: result.dislikes || [],
+    reports: result.reports || []
+  };
 }

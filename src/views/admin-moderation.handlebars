@@ -1,0 +1,27 @@
+<h1>Comment Moderation</h1>
+
+<form id="moderationFilters" style="margin: 20px 0; padding: 15px; border: 1px solid #2b3b52;">
+  <label>
+    Status: 
+    <select name="status" id="filter-status">
+      <option value="">All</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </label>
+  <label style="margin-left: 20px;">
+    Has Reports: 
+    <select name="hasReports" id="filter-reports">
+      <option value="">All</option>
+      <option value="true">Yes</option>
+      <option value="false">No</option>
+    </select>
+  </label>
+  <button type="submit" class="btn" style="margin-left: 20px;">Filter</button>
+</form>
+
+<div id="moderationLoading" style="display: none; padding: 10px;">Loading...</div>
+<div id="moderationError" style="display: none; padding: 10px; color: var(--bad);" role="alert"></div>
+<div id="moderationComments" style="margin-top: 20px;"></div>
+

@@ -150,3 +150,20 @@
   background: var(--muted);
 }
 
+#moderationComments > div {
+  border: 1px solid #2b3b52;
+  padding: 15px;
+  margin: 10px 0;
+  background: #161b22;
+}
+
+#moderationComments .comment-actions {
+  margin-top: 10px;
+}
+
+#moderationComments .comment-actions button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
