@@ -265,14 +265,14 @@ export async function getCommentsForModeration({
     }
   }
   
-  console.log("Moderation query:", JSON.stringify(query));
+  console.log("moderation query:", JSON.stringify(query));
   const comments = await col
     .find(query)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .toArray();
-  console.log("Found comments:", comments.length);
+  console.log("found comments:", comments.length);
   
   return comments.map(comment => ({
     ...comment,
