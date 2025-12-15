@@ -1,6 +1,6 @@
 <h1>Comment Moderation</h1>
 
-<form id="moderationFilters" style="margin: 20px 0; padding: 15px; border: 1px solid #2b3b52;">
+<form id="moderationFilters" class="moderation-filters-form">
   <label>
     Status: 
     <select name="status" id="filter-status">
@@ -10,7 +10,7 @@
       <option value="rejected">Rejected</option>
     </select>
   </label>
-  <label style="margin-left: 20px;">
+  <label>
     Has Reports: 
     <select name="hasReports" id="filter-reports">
       <option value="">All</option>
@@ -18,10 +18,10 @@
       <option value="false">No</option>
     </select>
   </label>
-  <button type="submit" class="btn" style="margin-left: 20px;">Filter</button>
+  <button type="submit" class="btn">Filter</button>
 </form>
 
-<div id="moderationLoading" style="display: none; padding: 10px;">Loading...</div>
-<div id="moderationError" style="display: none; padding: 10px; color: var(--bad);" role="alert"></div>
-<div id="moderationComments" style="margin-top: 20px;"></div>
+<div id="moderationLoading" class="moderation-loading" style="display: none;">Loading...</div>
+<div id="moderationError" class="moderation-error" style="display: none;" role="alert"></div>
+<div id="moderationComments" class="moderation-comments-list"></div>
 

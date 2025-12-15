@@ -31,25 +31,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       data.comments.forEach(comment => {
         const div = document.createElement("div");
-        div.style.border = "1px solid #2b3b52";
-        div.style.padding = "15px";
-        div.style.margin = "10px 0";
-        div.style.background = "#161b22";
+        div.className = "moderation-comment-item";
         const commentId = String(comment._id);
         div.id = `comment-${commentId}`;
 
         div.innerHTML = `
-          <div><strong>${comment.username}</strong> - ${new Date(comment.createdAt).toLocaleString()}</div>
-          <div style="margin: 10px 0;">${comment.content}</div>
-          <div style="font-size: 0.9em; color: var(--muted);">
-            Status: ${comment.status || "approved"} | 
-            Reports: ${comment.reports ? comment.reports.length : 0}
-            ${comment.incident ? ` | Incident: ${comment.incident.complaintType || "N/A"}` : ""}
+          <div class="mod-comment-header">
+            <strong>${comment.username}</strong>
+            <span class="mod-comment-date">${new Date(comment.createdAt).toLocaleString()}</span>
           </div>
-          <div style="margin-top: 10px;">
-            <button class="mod-approve" data-comment-id="${commentId}" style="margin-right: 10px; padding: 5px 10px; cursor: pointer;">Approve</button>
-            <button class="mod-reject" data-comment-id="${commentId}" style="margin-right: 10px; padding: 5px 10px; cursor: pointer;">Reject</button>
-            <button class="mod-delete" data-comment-id="${commentId}" style="padding: 5px 10px; cursor: pointer;">Delete</button>
+          <div class="mod-comment-content">${comment.content}</div>
+          <div class="mod-comment-meta">
+            <span class="mod-status">Status: ${comment.status || "approved"}</span>
+            <span class="mod-reports">Reports: ${comment.reports ? comment.reports.length : 0}</span>
+            ${comment.incident ? `<span class="mod-incident">Incident: ${comment.incident.complaintType || "N/A"}</span>` : ""}
+          </div>
+          <div class="mod-comment-actions">
+            <button class="mod-approve mod-btn" data-comment-id="${commentId}">Approve</button>
+            <button class="mod-reject mod-btn" data-comment-id="${commentId}">Reject</button>
+            <button class="mod-delete mod-btn" data-comment-id="${commentId}">Delete</button>
           </div>
         `;
 
