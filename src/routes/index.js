@@ -180,8 +180,6 @@ router.get("/feed", async (req, res) => {
 
       if (incidents.length === 0 && !status && !complaintType && !agency && page === 1) {
         try {
-          console.log(`Auto-fetching incidents for ZIP ${zip} from API...`);
-          
           const MIN_RECORDS = PAGE_SIZE;
           let apiIncidents = [];
           let daysUsed = 30;
@@ -194,35 +192,26 @@ router.get("/feed", async (req, res) => {
               days: days
             });
 
-            console.log(`Fetched ${apiIncidents.length} incidents from API for ZIP ${zip} (${days} days)`);
-            
             daysUsed = days;
             
             if (apiIncidents.length >= MIN_RECORDS) {
-              console.log(`Found ${apiIncidents.length} incidents (>= ${MIN_RECORDS}), stopping search`);
               break;
             }
             
             if (days === dateRanges[dateRanges.length - 1] && apiIncidents.length === 0) {
-              console.log(`No incidents found in last ${days} days, trying all historical data for ZIP ${zip}...`);
-              
               apiIncidents = await fetchIncidentsFromAPI({
                 zip,
                 limit: 1000,
                 days: 3650
               });
               
-              console.log(`Fetched ${apiIncidents.length} incidents from API for ZIP ${zip} (all history)`);
               daysUsed = 3650;
               break;
             }
             
             if (days === dateRanges[dateRanges.length - 1] && apiIncidents.length > 0) {
-              console.log(`Reached maximum date range (${days} days), using ${apiIncidents.length} incidents found`);
               break;
             }
-            
-            console.log(`Only found ${apiIncidents.length} incidents (< ${MIN_RECORDS}), trying ${dateRanges[dateRanges.indexOf(days) + 1]} days...`);
           }
 
           if (apiIncidents.length > 0) {
@@ -251,11 +240,9 @@ router.get("/feed", async (req, res) => {
             });
             
             const rawIncidents = Array.isArray(rawResponse.data) ? rawResponse.data : [];
-            console.log(`Raw API returned ${rawIncidents.length} incidents for ZIP ${zip}`);
             
             if (rawIncidents.length > 0) {
               await saveIncidents(rawIncidents);
-              console.log(`Saved ${rawIncidents.length} incidents to database for ZIP ${zip}`);
             }
           }
 
@@ -268,8 +255,6 @@ router.get("/feed", async (req, res) => {
             agency,
             sort
           });
-
-          console.log(`After save, found ${refreshedIncidents.length} incidents in DB for ZIP ${zip}`);
 
           hasNextPage = refreshedIncidents.length > PAGE_SIZE;
           incidents = refreshedIncidents.slice(0, PAGE_SIZE);

@@ -1,5 +1,3 @@
-// testing
-
 document.addEventListener("DOMContentLoaded", () => {
   const mapEl = document.getElementById('map');
   if (!mapEl) return;

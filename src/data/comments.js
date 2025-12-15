@@ -24,7 +24,6 @@ export async function createComment(incidentId, userId, username, content) {
     reports: []
   };
   const result = await col.insertOne(comment);
-  console.log("Comment created:", result.insertedId, "status: pending");
   return result;
 }
 
@@ -265,14 +264,12 @@ export async function getCommentsForModeration({
     }
   }
   
-  console.log("moderation query:", JSON.stringify(query));
   const comments = await col
     .find(query)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .toArray();
-  console.log("found comments:", comments.length);
   
   return comments.map(comment => ({
     ...comment,
