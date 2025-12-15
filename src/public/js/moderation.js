@@ -9,12 +9,23 @@ document.addEventListener("DOMContentLoaded", () => {
     errorDiv.style.display = "none";
     commentsDiv.innerHTML = "";
 
-    const status = document.getElementById("filter-status").value;
-    const hasReports = document.getElementById("filter-reports").value;
+    const statusSelect = document.getElementById("filter-status");
+    const hasReportsSelect = document.getElementById("filter-reports");
+    const status = statusSelect.value;
+    const hasReports = hasReportsSelect.value;
 
     const params = new URLSearchParams();
-    if (status) params.append("status", status);
-    if (hasReports) params.append("hasReports", hasReports);
+    if (status) {
+      params.append("status", status);
+    }
+    if (hasReports) {
+      params.append("hasReports", hasReports);
+    }
+    
+    if (!status && !hasReports) {
+      params.append("status", "pending");
+      params.append("hasReports", "true");
+    }
 
     try {
       const response = await fetch(`/api/moderation/comments?${params.toString()}`);
@@ -80,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
         if (data.ok) {
           document.getElementById(`comment-${commentId}`).remove();
+          loadComments();
         } else {
           alert(data.error || "Failed");
         }
@@ -92,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
         if (data.ok) {
           document.getElementById(`comment-${commentId}`).remove();
+          loadComments();
         } else {
           alert(data.error || "Failed");
         }
@@ -105,6 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
         if (data.ok) {
           document.getElementById(`comment-${commentId}`).remove();
+          loadComments();
         } else {
           alert(data.error || "Failed");
         }

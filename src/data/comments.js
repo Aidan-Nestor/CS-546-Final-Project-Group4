@@ -18,12 +18,14 @@ export async function createComment(incidentId, userId, username, content) {
     username: String(username).trim(),
     content: validatedContent,
     createdAt: new Date(),
-    status: "approved",
+    status: "pending",
     likes: [],
     dislikes: [],
     reports: []
   };
-  await col.insertOne(comment);
+  const result = await col.insertOne(comment);
+  console.log("Comment created:", result.insertedId, "status: pending");
+  return result;
 }
 
 export async function getCommentsByIncident(incidentId) {
@@ -230,25 +232,47 @@ export async function getCommentsForModeration({
   
   const query = {};
   
-  if (status) {
-    query.status = status;
-  }
-  
-  if (hasReports === true) {
-    query.reports = { $exists: true, $ne: [] };
-  } else if (hasReports === false) {
+  if ((status === "pending" && hasReports === true) || (!status && !hasReports)) {
     query.$or = [
-      { reports: { $exists: false } },
-      { reports: { $size: 0 } }
+      { status: "pending" },
+      { reports: { $exists: true, $ne: [] } }
     ];
+  } else {
+    if (status) {
+      query.status = status;
+    }
+    
+    if (hasReports === true) {
+      query.reports = { $exists: true, $ne: [] };
+    } else if (hasReports === false) {
+      if (query.status) {
+        query.$and = [
+          { status: query.status },
+          {
+            $or: [
+              { reports: { $exists: false } },
+              { reports: { $size: 0 } }
+            ]
+          }
+        ];
+        delete query.status;
+      } else {
+        query.$or = [
+          { reports: { $exists: false } },
+          { reports: { $size: 0 } }
+        ];
+      }
+    }
   }
   
+  console.log("Moderation query:", JSON.stringify(query));
   const comments = await col
     .find(query)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .toArray();
+  console.log("Found comments:", comments.length);
   
   return comments.map(comment => ({
     ...comment,
